@@ -1,0 +1,5 @@
+os-sys
+pyfiglet
+asyncio
+Telethon
+opentele
