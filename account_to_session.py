@@ -20,7 +20,7 @@ def print_welcome_message():
     print(ascii_art)
     
     # Menampilkan GitHub username Anda
-    print("GitHub: @riskimeji\n")
+    print("GitHub: @riskimeji")
     print("Channel Tele: @mpeanutx\n")
 
 async def login_with_phone():
