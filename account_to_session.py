@@ -23,7 +23,7 @@ def print_welcome_message():
     print("GitHub: @riskimeji")
     print("Channel Tele: @mpeanutx\n")
 
-async def login_with_phone():
+async def login_with_phone(save_as_tdata=False):
     # Meminta nomor telepon dari pengguna secara manual
     phone_number = input('Masukkan nomor telepon Anda (dengan kode negara, misalnya +62 untuk Indonesia): ')
 
@@ -55,6 +55,10 @@ async def login_with_phone():
     me = await client.get_me()
     print(f"Login berhasil sebagai {me.first_name} (ID: {me.id})")
 
+    # Jika user memilih login manual to tdata, langsung konversi ke tdata
+    if save_as_tdata:
+        await export_session_to_tdata(client)
+
     # Pastikan koneksi terputus dengan baik setelah selesai
     await client.disconnect()
 
@@ -81,23 +85,70 @@ async def login_with_tdata():
     # Pastikan koneksi terputus dengan baik setelah selesai
     await client.disconnect()
 
+async def export_session_to_tdata(client):
+    # Meminta path folder tujuan untuk menyimpan tdata
+    export_folder = input(r"Masukkan path folder tempat Anda ingin menyimpan file tdata: ")
+
+    # Memuat sesi dari Telethon dan menyimpannya dalam format TDesktop
+    tdesk = await client.ToTDesktop(flag=UseCurrentSession)
+
+    if not os.path.exists(export_folder):
+        os.makedirs(export_folder)
+
+    tdesk.SaveTData(export_folder)  # Menyimpan session sebagai tdata
+
+    print(f"Session berhasil diekspor ke folder: {export_folder}")
+
+async def login_with_existing_session():
+    # Meminta path file sesi dari pengguna secara manual
+    session_file = input(r"Masukkan path file sesi Telethon Anda (misal: sessions_tele/telethon_phone.session): ")
+
+    # Load Telegram client dari sesi yang ada
+    client = TelegramClient(session_file, api_id, api_hash)
+
+    # Hubungkan ke Telegram
+    await client.connect()
+
+    # Periksa apakah session valid
+    if await client.is_user_authorized():
+        me = await client.get_me()
+        print(f"Login berhasil sebagai {me.first_name} (ID: {me.id})")
+        
+        # Opsi untuk mengkonversi session Telethon ke tdata
+        await export_session_to_tdata(client)
+    else:
+        print("Session tidak valid atau belum login. Coba login kembali.")
+
+    # Pastikan koneksi terputus dengan baik setelah selesai
+    await client.disconnect()
+
 async def main():
     # Tampilkan pesan selamat datang dengan ASCII art
     print_welcome_message()
 
     # Tampilkan menu pilihan
     print("Pilih metode login:")
-    print("1. Login menggunakan tdata")
-    print("2. Login menggunakan nomor telepon")
+    print("1. tdata to session")
+    print("2. login manual to session")
+    print("3. login manual to tdata")
+    print("4. session to tdata")
     
-    choice = input("Masukkan pilihan Anda (1 atau 2): ")
+    choice = input("Masukkan pilihan Anda (1, 2, 3, atau 4): ")
 
     if choice == "1":
+        # tdata to session
         await login_with_tdata()
     elif choice == "2":
-        await login_with_phone()
+        # login manual to session
+        await login_with_phone(save_as_tdata=False)
+    elif choice == "3":
+        # login manual to tdata
+        await login_with_phone(save_as_tdata=True)
+    elif choice == "4":
+        # session to tdata
+        await login_with_existing_session()
     else:
-        print("Pilihan tidak valid. Harap pilih antara 1 atau 2.")
+        print("Pilihan tidak valid. Harap pilih antara 1, 2, 3, atau 4.")
 
 # Menjalankan main loop
 asyncio.run(main())
